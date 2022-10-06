@@ -77,7 +77,7 @@ def apply_discount(takeaway, barbeque_feast_cost, a_la_carte_cost, drinks_cost):
 
 #Function to handle the order by determining costs for the total order, hadnle special order requests, and increment quanitities for items sold and save to file
 def handle_order(takeaway, order):
-    #Define scope of particular variables, not very Pythonic but allows these variables to be accessed by other functions without the fuss of passing local variables as parameters
+    #Define scope of particular variables, not very Pythonic but allows these variables to be accessed by other functions without the fuss of passing local variables as parameters or referring to variables from a list
     global order_barbeque_feast_items
     global order_a_la_carte_items
     global order_a_la_carte_cost
