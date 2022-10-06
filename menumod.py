@@ -173,13 +173,13 @@ def handle_order(takeaway, order):
                     continue
                 
                 #Handle grilled chicken for eligible item
-                if "ADD GRILLED CHICKEN" or "GRILLED CHICKEN" in request and request[0] == "ROCKET SALAD":
+                if ("ADD GRILLED CHICKEN" or "GRILLED CHICKEN" in request) and (request[0] == "ROCKET SALAD"):
                     order[item_index] += " - ADD GRILLED CHICKEN"
                     order.insert(item_index + 1, "GRILLED CHICKEN")
                     order_a_la_carte_cost.append(a_la_carte_cost[a_la_carte_items.index("GRILLED CHICKEN")])
                     order_a_la_carte_items[-1] = order[item_index]
                     order_a_la_carte_items.append("GRILLED CHICKEN")
-                    total_a_la_carte_cost += float(a_la_carte_cost[a_la_carte_items.index(request[0])])
+                    total_a_la_carte_cost += float(a_la_carte_cost[a_la_carte_items.index("GRILLED CHICKEN")])
                     increment_quantity_sold("GRILLED CHICKEN")
 
                 #Non-eligible items have the grilled chicken request removed
@@ -224,14 +224,15 @@ def total_order_cost_and_summaries(customer_name, order, takeaway_choice, takeaw
           "----------------------------------\n"
           "Customer name: {}\n"
           "Dining choice: {}\n".format(customer_name, takeaway_choice))
+    
+    print("Barbeque Feast:")
     if takeaway == False:
-        print("Barbeque Feast:")
         for x in order_barbeque_feast_items:
             x.capitalize()
             print("{}".format(x))
         print(barbeque_feast_summary)
-        print("                             ${:.2f}".format(total_barbeque_feast_cost))
-        print("")
+    print("                             ${:.2f}".format(total_barbeque_feast_cost))
+    print("")
     print("A La Carte:")
     for x in order_a_la_carte_items:
         x.capitalize()
@@ -254,14 +255,15 @@ def total_order_cost_and_summaries(customer_name, order, takeaway_choice, takeaw
                    "----------------------------------\n"
                    "Customer name: {}\n"
                    "Dining choice: {}\n\n".format(customer_name, takeaway_choice))
+
+        file.write("Barbeque Feast:\n")
         if takeaway == False:
-            file.write("Barbeque Feast:\n")
             for x in order_barbeque_feast_items:
                 x.capitalize()
                 file.write("{}\n".format(x))
             file.write(barbeque_feast_summary)
-            file.write("\n"
-                       "                             ${:.2f}\n\n".format(total_barbeque_feast_cost))
+        file.write("\n"
+                   "                             ${:.2f}\n\n".format(total_barbeque_feast_cost))
         file.write("A La Carte:\n")
         for x in order_a_la_carte_items:
             x.capitalize()

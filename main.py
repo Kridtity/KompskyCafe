@@ -72,12 +72,12 @@ if menu_select == "I":
                           "Enter customer name: ").upper()
 
     #Print dine-in/takeaway options
-    takeaway_choice = input("Dine-in or takeaway? ").capitalize()
+    dining_choice = input("Dine-in or takeaway? ").capitalize()
     
     #Set takeaway boolean to be used in menumod module for discount calculations and menu options, invalid selections are prompted to restart or quit
-    if takeaway_choice == "Takeaway":
+    if dining_choice == "Takeaway":
         takeaway = True
-    elif takeaway_choice == "Dine-in":
+    elif dining_choice == "Dine-in":
         takeaway = False
     else:
         print("Please enter a valid input.\n")
@@ -104,7 +104,7 @@ if menu_select == "I":
     #order = ['RUMP STEAK', 'LAMB CHUMP', 'MASHED POTATOES', 'GARLIC BREAD', 'ROCKET SALAD-GF-GRILLED CHICKEN', 'SOFT DRINK CAN-PEPSI']
 
     #Run function from module to process order and prompt user to restart or quit once invoice is displayed on screen and saved to file (functionality in module except for quitting and restarting protocol)
-    menumod.total_order_cost_and_summaries(customer_name, order, takeaway_choice, takeaway)
+    menumod.total_order_cost_and_summaries(customer_name, order, dining_choice, takeaway)
     wait_to_close()
 
 ##Following menu_select prints the previous order or an error message is no previous order information is available
