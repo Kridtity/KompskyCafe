@@ -1,0 +1,197 @@
+Module Main
+    Input(CustomerName)
+    Input(TakeawayChoice)
+    Input(Order)
+
+    If TakeawayChoice = 'Takeaway' then
+        Takeaway ← True
+    Else
+        Takeaway ← False
+
+    Call TotalOrderAndSummaries(CustomerName, Order, TakeawayChoice, Takeaway)
+End Module
+
+Function WaitToClose
+    Output("")
+    I ← Input("Enter R to reload or any other key to quit then ")
+    
+    If I = "R" then
+        Call Main
+    Else
+        Quit()
+End Function
+
+Function IncrementQuantitySold(SItem)
+    #Get quantities of items sold from file
+    Read('quantity_sold.txt', QuantityList)
+
+    #Increment quantities by amount of item sold
+    If SItem in MenuItems then
+        IncrementPosition ← MenuItems.Index(SItem)
+        QuantityList[IncrementPosition] ← QuantityList[IncrementPosition] + 1
+
+    #Write to file
+    For Quantity in QuantityList then
+        Write('quantity_sold.txt', Quantity)
+End Function
+
+#Define function to apply discount
+Function ApplyDiscount(Takeaway, BarbequeFeastCost, ALaCarteCost, DrinksCost) then
+    If Takeaway = True then
+        TotalCost ← (BarbequeFeastCost + ALaCarteCost + DrinksCost) * DISCOUNT
+    Else If Takeaway = False
+        TotalCost ← BarbequeFeastCost + ALaCarteCost + DrinksCost
+    Else
+        Output("Error in applying discount.")
+End Function
+
+#Function to handle the Order by determining costs For the total Order, hadnle special Order Requests, and increment quanitities For items sold and save to file
+Module HandleOrder(OTakeaway, OOrder)
+    #Define scope of particular variables
+    Global OrderBarbequeFeastItems ← []
+    Global OrderALaCarteItems ← []
+    Global OrderALaCarteCost ← []
+    Global OrderDrinksItems ← []
+    Global OrderDrinksCost ← []
+    Global TotalBarbequeFeastCost
+    Global TotalALaCarteCost
+    Global TotalDrinksCost
+    Global TotalCost
+    Global BarbequeFeastSummary
+
+    #Determine BBQ feast items cost in Order and append to new list
+    If OTakeaway = False then        
+        For X in OOrder then
+            If X in BarbequeFeastItems then
+                OrderBarbequeFeastItems.Append(X)
+                IncrementQuantitySold(X)
+            
+        #Calculate Barbeque Feast Order items cost based on amount Ordered and sets of 4 Ordered
+        If Length(OrderBarbequeFeastItems) <= 3 then
+            TotalBarbequeFeastCost ← INDIVIDUAL_BARBEQUE_FEAST_COST * Length(OrderBarbequeFeastItems)
+            BarbequeFeastSummary ← OrderBarbequeFeastItems + " x individual Barbeque Feast items"
+        Else If (Length(OrderBarbequeFeastItems) % 4) = 0
+            Multiplier ← Length(OrderBarbequeFeastItems) / 4
+            TotalBarbequeFeastCost ← BARBEQUE_FEAST_COST * Multiplier
+            BarbequeFeastSummary ← Multiplier + " x group Barbeque Feast items"
+        Else If Length(OrderBarbequeFeastItems) >= 4
+            IndividualMultiplier ← Length(OrderBarbequeFeastItems) % 4
+            GroupMultiplier ← (Length(OrderBarbequeFeastItems) - IndividualMultiplier) / 4
+            TotalBarbequeFeastCost ← BARBEQUE_FEAST_COST * GroupMultiplier + INDIVIDUAL_BARBEQUE_FEAST_COST * IndividualMultiplier
+            BarbequeFeastSummary ← GroupMultiplier + " x group Barbeque Feast items, " + IndividualMultiplier + " x individual Barbeque Feast items"
+        Else
+            Output("Error calculating BBQ Feast cost.")
+    Else If OTakeaway = True
+        pass
+    Else
+        Output("Error in calculating Barbeque Feast details.")
+
+    #Determine A La Carte items cost in Order
+    For X in OOrder then
+        If X in ALaCarteItems then
+            OrderALaCarteCost.Append(ALaCarteCost[ALaCarteItems.Index(X)])
+            OrderALaCarteItems.Append(X)
+            TotalALaCarteCost ← ALaCarteCost[ALaCarteItems.Index(X)] + TotalALaCarteCost
+            IncrementQuantitySold(X)
+        
+    #Determine drinks items cost in Order
+    For X in OOrder then
+        If X in DrinksItems then
+            OrderDrinksCost.Append(DrinksCost[DrinksItems.Index(X)])
+            OrderDrinksItems.Append(X)
+            TotalDrinksCost ← DrinksCost[DrinksItems.Index(X)] + TotalDrinksCost
+            IncrementQuantitySold(X)
+
+    #Iteration to handle special A La Carte Requests and soft drink Orders
+    For X in OOrder then
+        If "-" in X then
+            Request ← X.Split("-")
+            ItemIndex ← OOrder.Index(X)
+            
+            #Handle gluten free Requests For eligible items
+            If Request[0] in ALaCarteItems then
+                If "GF" or "GLUTEN FREE" in Request and ALaCarteGF[ALaCarteItems.Index(Request[0])] = True then
+                    OOrder[ItemIndex] ← Request[0] + " - GLUTEN FREE"
+                    OrderALaCarteCost.Append(ALaCarteCost[ALaCarteItems.Index(Request[0])])
+                    OrderALaCarteItems.Append(OOrder[ItemIndex])
+                    TotalALaCarteCost ← ALaCarteCost[ALaCarteItems.Index(Request[0])] + TotalALaCarteCost
+                    IncrementQuantitySold(Request[0])
+
+                #Non-eligible items have the gluten free Request removed
+                Else If "GF" or "GLUTEN FREE" in Request and ALaCarteGF[ALaCarteItems.Index(Request[0] = False)] then
+                    OOrder[ItemIndex] ← Request[0]
+                Else
+                    Continue
+                
+                #Handle grilled chicken For eligible item
+                If ("ADD GRILLED CHICKEN" or "GRILLED CHICKEN" in Request) and (Request[0] = "ROCKET SALAD") then
+                    OOrder[ItemIndex] ← OOrder[ItemIndex] + " - ADD GRILLED CHICKEN"
+                    OOrder.Insert(ItemIndex + 1, "GRILLED CHICKEN")
+                    OrderALaCarteCost.Append(ALaCarteCost[ALaCarteItems.Index("GRILLED CHICKEN")])
+                    OrderALaCarteItems[-1] ← OOrder[ItemIndex]
+                    OrderALaCarteItems.Append("GRILLED CHICKEN")
+                    TotalALaCarteCost ← ALaCarteCost[ALaCarteItems.Index("GRILLED CHICKEN")] + TotalALaCarteCost
+                    IncrementQuantitySold("GRILLED CHICKEN")
+
+                #Non-eligible items have the grilled chicken Request removed
+                Else If "ADD GRILLED CHICKEN" or "GRILLED CHICKEN" in Request and Request[0] != "ROCKET SALAD" then
+                    OOrder[ItemIndex] ← Request[0]
+                Else
+                    Continue
+            
+            #Handle softdrink can type Requests, If type is not in list ignore and list only as soft drink can
+            If Request[0] in DrinksItems then
+                If "SOFT DRINK CAN" in Request and Request[1] in SoftDrinksItems then
+                    OOrder[ItemIndex] ← Request[0] + " - " + Request[1]
+                    OrderDrinksCost.Append(DrinksCost[DrinksItems.Index(Request[0])])
+                    OrderDrinksItems.Append(OOrder[ItemIndex])
+                    TotalDrinksCost ← DrinksCost[DrinksItems.Index(Request[0])] + TotalDrinksCost
+                    IncrementQuantitySold(Request[0])
+                Else If "SOFT DRINK CAN" in Request and Request[1] not in SoftDrinksItems then
+                    OOrder[ItemIndex] ← Request[0]
+                    OrderDrinksCost.Append(DrinksCost[DrinksItems.Index(Request[0])])
+                    OrderDrinksItems.Append(OOrder[ItemIndex])
+                    TotalDrinksCost ← DrinksCost[DrinksItems.Index(Request[0])] + TotalDrinksCost
+                    IncrementQuantitySold(Request[0])
+                Else
+                    Continue
+
+    #Determine total cost of Order
+    TotalCost ← ApplyDiscount(OTakeaway, TotalBarbequeFeastCost, TotalALaCarteCost, TotalDrinksCost)
+
+    #Write total cost of Order into the 'Order_totals.txt' file
+    Write('order_totals.txt', TotalCost)
+End Module
+
+#Run total Order cost function and summarise Order in a Shell/command line output and Output to a text file total Order cost
+Module TotalOrderCostAndSummaries(SCustomerName, SOrder, STakeawayChoice, STakeaway)
+    #Process Order costs and organise into categories
+    Call HandleOrder(STakeaway, SOrder)
+    
+    #Define function to Output Order summary to Shell/text file   
+    #Output Order summary to Shell
+    Output(SCustomerName)
+    Output(STakeawayChoice)
+    Output("Barbeque Feast: ")
+    If Takeaway = False then
+        For X in OrderBarbequeFeastItems then
+            X.Capitalize()
+            Output(X)
+        Output(BarbequeFeastSummary)
+    Output("$" + TotalBarbequeFeastCost)
+    Output("")
+    Output("A La Carte: ")
+    For X in OrderALaCarteItems then
+        X.Capitalize()
+        Output(X)
+        Output("$" + OrderALaCarteCost[OrderALaCarteItems.Index(X)])
+    Output("")
+    Output("Drinks: ")
+    For X in OrderDrinksItems then
+        X.Capitalize()
+        Output(X)
+        Output("$" + OrderDrinksCost[OrderDrinksItems.Index(X)])
+    Output("")
+    Output("")
+    Output("Total cost: $" + TotalCost)
+End Module
